@@ -1,12 +1,14 @@
 const express = require("express");
-const indexRouter = require("./routes/postRouter");
+const postRouter = require("./routes/postRouter");
+const authRouter = require("./routes/authRouter");
 
 const app = express();
 
 const PORT = 3000;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(indexRouter);
+app.use(postRouter);
+app.use(authRouter);
 
 app.listen(PORT, (error) => {
   if (error) {

@@ -20,7 +20,7 @@ model User{
   username    String   @unique
   password    String
   timestamp   DateTime  @default(now())
-  status      String
+  status      String    @default("user")
   posts       Post[] 
 }
 
