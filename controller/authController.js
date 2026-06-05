@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { createUser } = require("../db/queries");
+const { createUser, findUser } = require("../db/queries");
 require("dotenv/config");
 
 async function getLogin(req, res) {
@@ -33,20 +33,35 @@ async function postRegister(req, res) {
 async function postLogin(req, res) {
   const username = req.body.username;
   const password = req.body.password;
-  if (username === "madhavjari" && password === "jariwala") {
-    jwt.sign(username, process.env.JWT_SECRET_KEY, (err, token) => {
+  try {
+    const user = await findUser(username);
+    if (!user) {
       res.json({
-        username,
-        token,
+        message: "Invalid username",
       });
-      if (err)
+    } else {
+      const match = await bcrypt.compare(password, user.password);
+      if (!match) {
         res.json({
-          err,
+          message: "Invalid Password",
         });
-    });
-  } else {
+      } else {
+        jwt.sign(username, process.env.JWT_SECRET_KEY, (err, token) => {
+          res.json({
+            username,
+            token,
+          });
+          if (err)
+            res.json({
+              err,
+            });
+        });
+      }
+    }
+  } catch (err) {
+    console.log(err);
     res.json({
-      message: "Invalid username or password",
+      message: err,
     });
   }
 }

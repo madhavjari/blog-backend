@@ -1,3 +1,11 @@
+const {
+  createPost,
+  findUserId,
+  findPost,
+  changePublishToTrue,
+  changePublishToFalse,
+} = require("../db/queries");
+
 async function getPost(req, res) {
   const post = req.body;
 
@@ -8,19 +16,57 @@ async function getPost(req, res) {
 }
 
 async function postPost(req, res) {
-  const postTitle = req.body.title;
-  const postContent = req.body.content;
-  const timeStamp = Date.now();
-  const published = req.body.published;
-  let comment;
-  if (published === "true") {
-    comment = req.body.comment;
+  const { title, content } = req.body;
+  const user = req.user;
+  const authorId = await findUserId(user);
+  if (!title || !content)
+    return res.status(400).json({ error: "Title/Content is required" });
+  if (!authorId) {
+    return res
+      .status(401)
+      .json({ error: "User authentication failed. Missing user identifier." });
   }
-
+  const post = await createPost({
+    title: title.trim(),
+    content: content.trim(),
+    authorId,
+  });
+  console.log(post);
   res.json({
+    post,
     message: "Post created",
-    posts: { postTitle, postContent, timeStamp, published, comment },
   });
 }
 
-module.exports = { getPost, postPost };
+async function publishPost(req, res) {
+  const id = parseInt(req.params.postid);
+  const post = await findPost(id);
+  if (post) {
+    if (post.published === true)
+      return res.status(400).json({ error: "Post is already published" });
+    await changePublishToTrue(id);
+    res.json({
+      message: "Post Published",
+    });
+  } else {
+    res.status(401).json({
+      error: "post not found",
+    });
+  }
+}
+
+async function unpublishPost(req, res) {
+  const id = parseInt(req.params.postid);
+  if (await findPost(id)) {
+    await changePublishToFalse(id);
+    res.json({
+      message: "Post unpublished",
+    });
+  } else {
+    res.status(401).json({
+      error: "post not found",
+    });
+  }
+}
+
+module.exports = { getPost, postPost, publishPost, unpublishPost };
