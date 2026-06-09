@@ -12,6 +12,32 @@ async function createUser(user) {
   });
 }
 
+async function getPostByUser(userId) {
+  const posts = await prisma.post.findMany({
+    select: { title: true, content: true, timestamp: true, published: true },
+    where: { userId: userId },
+  });
+  return posts;
+}
+
+async function getPublishedPost() {
+  return prisma.post.findMany({
+    select: { title: true, content: true, timestamp: true },
+    where: { published: true },
+  });
+}
+
+async function getAllPost() {
+  return prisma.post.findMany({
+    select: {
+      title: true,
+      content: true,
+      timestamp: true,
+      published: true,
+    },
+  });
+}
+
 async function createPost({ title, content, authorId }) {
   return await prisma.post.create({
     data: {
@@ -53,6 +79,14 @@ async function findUserId(username) {
   return id.id;
 }
 
+async function checkStatus(username) {
+  const user = await prisma.user.findUnique({
+    select: { status: true },
+    where: { username: username },
+  });
+  return user.status;
+}
+
 async function findPost(id) {
   const isAvail = await prisma.post.findUnique({
     select: { id: true, published: true },
@@ -67,6 +101,20 @@ async function changePublishToTrue(id) {
       id: id,
     },
     data: {
+      published: true,
+    },
+  });
+}
+
+async function getPostById(id) {
+  return await prisma.post.findUnique({
+    select: {
+      title: true,
+      content: true,
+      timestamp: true,
+    },
+    where: {
+      id: id,
       published: true,
     },
   });
@@ -93,4 +141,9 @@ module.exports = {
   findPost,
   changePublishToTrue,
   changePublishToFalse,
+  getPostByUser,
+  getPublishedPost,
+  getAllPost,
+  checkStatus,
+  getPostById,
 };

@@ -7,7 +7,7 @@ function verifyToken(req, res, next) {
     const bearerToken = bearer[1];
     jwt.verify(bearerToken, process.env.JWT_SECRET_KEY, (err, authData) => {
       if (err) {
-        return res.sendStatus(403);
+        return res.sendStatus(403).json({ message: "No token" });
       }
       req.user = authData;
       next();
