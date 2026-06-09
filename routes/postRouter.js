@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const verifyToken = require("../config/verifyToken");
+const verifyToken = require("../middleware/verifyToken");
 const postController = require("../controller/postController");
 
 const postRouter = Router();

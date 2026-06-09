@@ -36,6 +36,13 @@ async function findUser(username) {
   return user;
 }
 
+async function findEmail(email) {
+  const user = await prisma.user.findUnique({
+    where: { email: email },
+  });
+  return user;
+}
+
 async function findUserId(username) {
   const id = await prisma.user.findUnique({
     select: { id: true },
@@ -80,6 +87,7 @@ module.exports = {
   getUsernames,
   createUser,
   findUser,
+  findEmail,
   createPost,
   findUserId,
   findPost,

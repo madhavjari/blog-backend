@@ -16,52 +16,54 @@ async function getRegister(req, res) {
 }
 
 async function postRegister(req, res) {
-  const firstName = req.body.firstName;
-  const lastName = req.body.lastName;
-  const email = req.body.email;
-  const username = req.body.username;
-  const password = req.body.password;
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const user = { firstName, lastName, email, username, hashedPassword };
-  await createUser(user);
-  res.json({
-    user,
-    message: "Registered Successfully",
-  });
+  try {
+    const { firstName, lastName, email, username, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = { firstName, lastName, email, username, hashedPassword };
+    await createUser(user);
+    res.status(201).json({
+      user,
+      message: "Registered Successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 }
 
 async function postLogin(req, res) {
-  const username = req.body.username;
-  const password = req.body.password;
+  const { username, password } = req.body;
   try {
     const user = await findUser(username);
     if (!user) {
-      res.json({
-        message: "Invalid username",
-      });
-    } else {
-      const match = await bcrypt.compare(password, user.password);
-      if (!match) {
-        res.json({
-          message: "Invalid Password",
-        });
-      } else {
-        jwt.sign(username, process.env.JWT_SECRET_KEY, (err, token) => {
-          res.json({
-            username,
-            token,
-          });
-          if (err)
-            res.json({
-              err,
-            });
-        });
-      }
+      return res.status(401).json({ message: "Invalid username" });
     }
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(401).json({
+        message: "Invalid Password",
+      });
+    }
+    jwt.sign(
+      { username: user.username },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "2h" },
+      (err, token) => {
+        res.status(200).json({
+          message: "Login Successful",
+          username,
+          token,
+        });
+        if (err)
+          return res.status(500).json({
+            message: "Error generating auth token",
+          });
+      },
+    );
   } catch (err) {
     console.log(err);
-    res.json({
-      message: err,
+    return res.status(500).json({
+      message: "Internal Server Error",
     });
   }
 }
