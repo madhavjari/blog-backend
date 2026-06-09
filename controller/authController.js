@@ -68,4 +68,18 @@ async function postLogin(req, res) {
   }
 }
 
-module.exports = { getLogin, getRegister, postRegister, postLogin };
+async function postLogout(req, res) {
+  try {
+    return res.status(200).json({
+      message:
+        "Logged out successfully. Please remove the token from client storage.",
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+}
+
+module.exports = { getLogin, getRegister, postRegister, postLogin, postLogout };

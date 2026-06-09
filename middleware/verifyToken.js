@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 
 function verifyToken(req, res, next) {
   const bearerHeader = req.headers["authorization"];
-  if (typeof bearerHeader !== "undefined") {
+  if (bearerHeader && bearerHeader.startsWith("Bearer ")) {
     const bearer = bearerHeader.split(" ");
     const bearerToken = bearer[1];
     jwt.verify(bearerToken, process.env.JWT_SECRET_KEY, (err, authData) => {
@@ -13,7 +13,7 @@ function verifyToken(req, res, next) {
       next();
     });
   } else {
-    res.sendStatus(403);
+    res.sendStatus(401);
   }
 }
 

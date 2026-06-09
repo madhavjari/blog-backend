@@ -17,22 +17,19 @@ async function getPost(req, res) {
 
 async function postPost(req, res) {
   const { title, content } = req.body;
-  const user = req.user;
+  const user = req.user.username;
   const authorId = await findUserId(user);
-  if (!title || !content)
-    return res.status(400).json({ error: "Title/Content is required" });
   if (!authorId) {
     return res
       .status(401)
       .json({ error: "User authentication failed. Missing user identifier." });
   }
   const post = await createPost({
-    title: title.trim(),
-    content: content.trim(),
+    title,
+    content,
     authorId,
   });
-  console.log(post);
-  res.json({
+  res.status(200).json({
     post,
     message: "Post created",
   });
