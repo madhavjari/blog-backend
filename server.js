@@ -4,15 +4,15 @@ const authRouter = require("./routes/authRouter");
 
 const app = express();
 
-const PORT = 3000;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(postRouter);
 app.use(authRouter);
 
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, (error) => {
   if (error) {
     throw error;
   }
-  console.log(`Listening on port ${PORT}!`);
+  console.log(`Server running on port ${PORT}`);
 });
