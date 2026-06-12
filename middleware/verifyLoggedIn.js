@@ -13,7 +13,7 @@ function verifyLoggedIn(req, res, next) {
       }
     });
   } else {
-    return res.sendStatus(401);
+    return res.status(200).json({ message: "Login to the blog" });
   }
 }
 
