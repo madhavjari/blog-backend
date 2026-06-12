@@ -14,6 +14,7 @@ const {
 
 async function getPost(req, res) {
   const posts = await getPublishedPost();
+  if (!posts) return res.status(404).json({ message: "No posts" });
   res.json({
     title: "Madhav's Blog",
     posts,
