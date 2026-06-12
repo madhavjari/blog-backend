@@ -153,7 +153,13 @@ async function getUserByPostId(id) {
       id: id,
     },
   });
-  return post.userId;
+  return post;
+}
+
+async function deletePostById(id) {
+  await prisma.post.delete({
+    where: { id: id },
+  });
 }
 
 module.exports = {
@@ -174,4 +180,5 @@ module.exports = {
   getUserByPostId,
   checkPostStatus,
   getPublishedPostByUser,
+  deletePostById,
 };

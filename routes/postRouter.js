@@ -33,16 +33,23 @@ postRouter.post(
   postController.postPost,
 );
 postRouter.put(
-  "/api/posts/:postid/publish",
+  "/api/posts/:id/publish",
   verifyToken,
   verifyAuthor,
   postController.publishPost,
 );
 postRouter.put(
-  "/api/posts/:postid/unpublish",
+  "/api/posts/:id/unpublish",
   verifyToken,
   verifyAuthor,
   postController.unpublishPost,
+);
+
+postRouter.delete(
+  "/api/posts/:id",
+  verifyToken,
+  verifyAuthor,
+  postController.deletePost,
 );
 
 module.exports = postRouter;

@@ -1,16 +1,22 @@
 const { findUserId, getUserByPostId } = require("../db/queries");
 
 async function verifyAuthor(req, res, next) {
-  const id = parseInt(req.params.postid);
-  const user = req.user.username;
-  const userId = await findUserId(user);
-  const postUserId = await getUserByPostId(id);
-
-  if (userId === postUserId) next();
-  else {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "invalid post id" });
+    const user = req.user.username;
+    const userId = await findUserId(user);
+    const post = await getUserByPostId(id);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+    if (userId === post.userId) return next();
     return res
-      .sendStatus(401)
+      .status(401)
       .json({ message: "You do not have authorization to change this post" });
+  } catch (error) {
+    console.error("Error in verifyAuthor middleware:", error);
+    return res
+      .status(500)
+      .json({ message: "Internal server error checking authorization" });
   }
 }
 

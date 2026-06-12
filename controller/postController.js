@@ -9,6 +9,7 @@ const {
   getAllPost,
   getPostById,
   getPublishedPostByUser,
+  deletePostById,
 } = require("../db/queries");
 
 async function getPost(req, res) {
@@ -58,7 +59,7 @@ async function getUniquePost(req, res) {
       return res.status(400).json({ error: "Invalid Post ID format" });
     }
     const post = await getPostById(postId);
-    if (!post) return res.status(403).json({ message: "Cannot view the post" });
+    if (!post) return res.status(404).json({ message: "Post not found" });
     if (post.published) {
       return res.status(200).json({
         title: post.title,
@@ -144,6 +145,21 @@ async function unpublishPost(req, res) {
   }
 }
 
+async function deletePost(req, res) {
+  try {
+    const id = parseInt(req.params.id);
+    await deletePostById(id);
+    return res.status(200).json({
+      message: "post deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error in deletePost controller:", error);
+    return res.status(500).json({
+      message: "An error occurred while deleting the post",
+    });
+  }
+}
+
 module.exports = {
   getPost,
   postPost,
@@ -152,4 +168,5 @@ module.exports = {
   getUserPost,
   getAdmin,
   getUniquePost,
+  deletePost,
 };
