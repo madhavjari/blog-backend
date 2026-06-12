@@ -27,6 +27,20 @@ async function getPublishedPost() {
   });
 }
 
+async function getPublishedPostByUser(userId) {
+  return prisma.post.findMany({
+    select: { title: true, content: true, timestamp: true },
+    where: { published: true, userId: userId },
+  });
+}
+
+async function checkPostStatus(id) {
+  return prisma.post.findUnique({
+    select: { id: true },
+    where: { id: id, published: true },
+  });
+}
+
 async function getAllPost() {
   return prisma.post.findMany({
     select: {
@@ -112,10 +126,11 @@ async function getPostById(id) {
       title: true,
       content: true,
       timestamp: true,
+      userId: true,
+      published: true,
     },
     where: {
       id: id,
-      published: true,
     },
   });
 }
@@ -129,6 +144,16 @@ async function changePublishToFalse(id) {
       published: false,
     },
   });
+}
+
+async function getUserByPostId(id) {
+  const post = await prisma.post.findUnique({
+    select: { userId: true },
+    where: {
+      id: id,
+    },
+  });
+  return post.userId;
 }
 
 module.exports = {
@@ -146,4 +171,7 @@ module.exports = {
   getAllPost,
   checkStatus,
   getPostById,
+  getUserByPostId,
+  checkPostStatus,
+  getPublishedPostByUser,
 };

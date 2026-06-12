@@ -45,8 +45,15 @@ const registerSchema = z.object({
 
 const loginSchema = z.object({
   body: z.object({
-    username: z.string().min(1, "Username is required").trim(),
-    password: z.string().min(1, "Password is require"),
+    username: z
+      .string()
+      .min(1, "Username is required")
+      .max(30, "Do no breach max length")
+      .trim(),
+    password: z
+      .string()
+      .min(1, "Password is require")
+      .max(30, "Let's not enter too large password"),
   }),
 });
 

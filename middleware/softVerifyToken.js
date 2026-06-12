@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 
-function verifyToken(req, res, next) {
+function softVerifyToken(req, res, next) {
   const bearerHeader = req.headers["authorization"];
   if (bearerHeader && bearerHeader.startsWith("Bearer ")) {
     const bearer = bearerHeader.split(" ");
@@ -13,8 +13,8 @@ function verifyToken(req, res, next) {
       next();
     });
   } else {
-    res.sendStatus(401).json({ message: "Wrong token" });
+    next();
   }
 }
 
-module.exports = verifyToken;
+module.exports = softVerifyToken;

@@ -8,6 +8,7 @@ const {
   getPostByUser,
   getAllPost,
   getPostById,
+  getPublishedPostByUser,
 } = require("../db/queries");
 
 async function getPost(req, res) {
@@ -22,15 +23,21 @@ async function getUserPost(req, res) {
   try {
     const username = req.params.username;
     const authorId = parseInt(await findUserId(username));
-    const publishedPost = await getPublishedPost();
+    if (!authorId) {
+      return res.status(404).json({ message: "Author not found" });
+    }
+    if (!req.user || username !== req.user.username) {
+      const userPost = await getPublishedPostByUser(authorId);
+      return res.status(200).json({ title: `${username}'s Blog`, userPost });
+    }
+
     const userPost = await getPostByUser(authorId);
-    res.json({
+    return res.json({
       title: `${username}'s Blog`,
-      publishedPost,
       userPost,
     });
   } catch {
-    res.status(403).json({
+    return res.status(403).json({
       message: "Invalid authorization",
     });
   }
@@ -45,15 +52,39 @@ async function getAdmin(req, res) {
 }
 
 async function getUniquePost(req, res) {
-  const postId = parseInt(req.params.id);
-  console.log(postId);
-  const post = await getPostById(postId);
-  if (!post) res.status(401).json({ message: "Cannot view the post" });
-  res.status(200).json({
-    title: post.title,
-    content: post.content,
-    timeStamp: post.timestamp,
-  });
+  try {
+    const postId = parseInt(req.params.id);
+    if (isNaN(postId)) {
+      return res.status(400).json({ error: "Invalid Post ID format" });
+    }
+    const post = await getPostById(postId);
+    if (!post) return res.status(403).json({ message: "Cannot view the post" });
+    if (post.published) {
+      return res.status(200).json({
+        title: post.title,
+        content: post.content,
+        timeStamp: post.timestamp,
+      });
+    }
+    if (req.user) {
+      const user = req.user.username;
+      const authorId = await findUserId(user);
+      if (authorId === post.userId) {
+        return res.status(200).json({
+          title: post.title,
+          content: post.content,
+          timeStamp: post.timestamp,
+          isDraft: true,
+        });
+      }
+    }
+    return res
+      .status(403)
+      .json({ message: "You do not have permission to view this draft." });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 }
 
 async function postPost(req, res) {
@@ -78,6 +109,9 @@ async function postPost(req, res) {
 
 async function publishPost(req, res) {
   const id = parseInt(req.params.postid);
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "Invalid post ID format" });
+  }
   const post = await findPost(id);
   if (post) {
     if (post.published === true)
@@ -95,6 +129,9 @@ async function publishPost(req, res) {
 
 async function unpublishPost(req, res) {
   const id = parseInt(req.params.postid);
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "Invalid post ID format" });
+  }
   if (await findPost(id)) {
     await changePublishToFalse(id);
     res.json({
