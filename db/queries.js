@@ -14,7 +14,13 @@ async function createUser(user) {
 
 async function getPostByUser(userId) {
   const posts = await prisma.post.findMany({
-    select: { title: true, content: true, timestamp: true, published: true },
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      timestamp: true,
+      published: true,
+    },
     where: { userId: userId },
   });
   return posts;
@@ -22,14 +28,14 @@ async function getPostByUser(userId) {
 
 async function getPublishedPost() {
   return prisma.post.findMany({
-    select: { title: true, content: true, timestamp: true },
+    select: { id: true, title: true, content: true, timestamp: true },
     where: { published: true },
   });
 }
 
 async function getPublishedPostByUser(userId) {
   return prisma.post.findMany({
-    select: { title: true, content: true, timestamp: true },
+    select: { id: true, title: true, content: true, timestamp: true },
     where: { published: true, userId: userId },
   });
 }
@@ -44,6 +50,7 @@ async function checkPostStatus(id) {
 async function getAllPost() {
   return prisma.post.findMany({
     select: {
+      id: true,
       title: true,
       content: true,
       timestamp: true,
