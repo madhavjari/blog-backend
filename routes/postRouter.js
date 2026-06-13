@@ -13,7 +13,7 @@ postRouter.get("/api/posts", postController.getPost);
 
 postRouter.get(
   "/api/posts/user/:username",
-  verifyToken,
+  softVerifyToken,
   postController.getUserPost,
 );
 
