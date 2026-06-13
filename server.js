@@ -8,7 +8,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://blog-frontend-ten-theta.vercel.app/",
+      "https://blog-frontend-ten-theta.vercel.app",
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
