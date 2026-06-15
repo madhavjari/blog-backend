@@ -24,8 +24,9 @@ async function getPost(req, res) {
 async function getUserPost(req, res) {
   try {
     const username = req.params.username;
-    const user = req.user.username;
+    let user = req.user;
     if (!user) user.username = null;
+    else user = user.username;
     const authorId = parseInt(await findUserId(username));
     if (!authorId) {
       return res.status(404).json({ message: "Author not found" });
