@@ -24,13 +24,16 @@ async function getPost(req, res) {
 async function getUserPost(req, res) {
   try {
     const username = req.params.username;
+    const user = req.user.username;
     const authorId = parseInt(await findUserId(username));
     if (!authorId) {
       return res.status(404).json({ message: "Author not found" });
     }
     if (!req.user || username !== req.user.username) {
       const userPost = await getPublishedPostByUser(authorId);
-      return res.status(200).json({ title: `${username}'s Blog`, userPost });
+      return res
+        .status(200)
+        .json({ title: `${username}'s Blog`, userPost, username, user });
     }
 
     const userPost = await getPostByUser(authorId);

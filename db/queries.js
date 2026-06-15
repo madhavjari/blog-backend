@@ -91,13 +91,13 @@ async function findEmail(email) {
 }
 
 async function findUserId(username) {
-  const id = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     select: { id: true },
     where: {
       username: username,
     },
   });
-  return id.id;
+  return user;
 }
 
 async function checkStatus(username) {
