@@ -32,9 +32,7 @@ async function getUserPost(req, res) {
     }
     if (!user || username !== user.username) {
       const userPost = await getPublishedPostByUser(authorId);
-      return res
-        .status(200)
-        .json({ title: `${username}'s Blog`, userPost, username, user });
+      return res.status(200).json({ title: `${username}'s Blog`, userPost });
     }
 
     const userPost = await getPostByUser(authorId);
@@ -74,7 +72,8 @@ async function getUniquePost(req, res) {
     }
     if (req.user) {
       const user = req.user.username;
-      const authorId = await findUserId(user);
+      const author = await findUserId(user);
+      const authorId = parseInt(author.id);
       if (authorId === post.userId) {
         return res.status(200).json({
           title: post.title,
