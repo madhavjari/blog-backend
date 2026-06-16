@@ -28,7 +28,18 @@ async function getPostByUser(userId) {
 
 async function getPublishedPost() {
   return prisma.post.findMany({
-    select: { id: true, title: true, content: true, timestamp: true },
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      timestamp: true,
+      userId: true,
+      user: {
+        select: {
+          username: true,
+        },
+      },
+    },
     where: { published: true },
   });
 }
@@ -74,6 +85,14 @@ async function getUsernames() {
     select: { username: true },
   });
   return usernames;
+}
+
+async function getUsernameByID(id) {
+  const user = await prisma.user.findFirst({
+    select: { username: true },
+    where: { id: id },
+  });
+  return user;
 }
 
 async function findUser(username) {
@@ -188,4 +207,5 @@ module.exports = {
   checkPostStatus,
   getPublishedPostByUser,
   deletePostById,
+  getUsernameByID,
 };
