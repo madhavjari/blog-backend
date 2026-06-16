@@ -7,7 +7,7 @@ const verifyLoggedIn = require("../middleware/verifyLoggedIn");
 
 const authRouter = Router();
 
-authRouter.get("/api/auth/login", verifyLoggedIn, authController.getLogin);
+authRouter.get("/api/auth/login", verifyLoggedIn);
 
 authRouter.post(
   "/api/auth/login",

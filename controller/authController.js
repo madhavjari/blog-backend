@@ -3,12 +3,6 @@ const jwt = require("jsonwebtoken");
 const { createUser, findUser } = require("../db/queries");
 require("dotenv/config");
 
-async function getLogin(req, res) {
-  res.json({
-    title: "Login to Madhav's Blog",
-  });
-}
-
 async function getRegister(req, res) {
   res.json({
     title: "Register to Madhav's Blog",
@@ -82,4 +76,4 @@ async function postLogout(req, res) {
   }
 }
 
-module.exports = { getLogin, getRegister, postRegister, postLogin, postLogout };
+module.exports = { getRegister, postRegister, postLogin, postLogout };
