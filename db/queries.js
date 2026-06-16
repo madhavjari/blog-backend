@@ -91,7 +91,7 @@ async function findEmail(email) {
 }
 
 async function findUserId(username) {
-  const user = await prisma.user.findUnique({
+  const user = await prisma.user.findFirst({
     select: { id: true },
     where: {
       username: username,
