@@ -9,7 +9,7 @@ function verifyLoggedIn(req, res, next) {
       if (err) {
         return next();
       }
-      return res.redirect("/api/posts");
+      return res.status(404).json({ message: "Already Logged in" });
     });
   } else {
     return next();
