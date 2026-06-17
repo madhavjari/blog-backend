@@ -8,12 +8,11 @@ function verifyLoggedIn(req, res, next) {
     jwt.verify(bearerToken, process.env.JWT_SECRET_KEY, (err) => {
       if (err) {
         next();
-      } else {
-        return res.status(400).json({ message: "Already logged in" });
       }
+      return res.redirect("/api/posts");
     });
   } else {
-    return res.status(200).json({ message: "Login to the blog" });
+    return next();
   }
 }
 
