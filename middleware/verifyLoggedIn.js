@@ -7,7 +7,7 @@ function verifyLoggedIn(req, res, next) {
     const bearerToken = bearer[1];
     jwt.verify(bearerToken, process.env.JWT_SECRET_KEY, (err) => {
       if (err) {
-        next();
+        return next();
       }
       return res.redirect("/api/posts");
     });
