@@ -8,6 +8,11 @@ async function getRegister(req, res) {
     title: "Register to Madhav's Blog",
   });
 }
+async function getLogin(req, res) {
+  res.json({
+    title: "Welcome to Login Page",
+  });
+}
 
 async function postRegister(req, res) {
   try {
@@ -76,4 +81,4 @@ async function postLogout(req, res) {
   }
 }
 
-module.exports = { getRegister, postRegister, postLogin, postLogout };
+module.exports = { getLogin, getRegister, postRegister, postLogin, postLogout };
