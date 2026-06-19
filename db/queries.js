@@ -46,8 +46,37 @@ async function getPublishedPost() {
 
 async function getPublishedPostByUser(userId) {
   return prisma.post.findMany({
-    select: { id: true, title: true, content: true, timestamp: true },
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      timestamp: true,
+      userId: true,
+      user: {
+        select: {
+          username: true,
+        },
+      },
+    },
     where: { published: true, userId: userId },
+  });
+}
+
+async function getPostById(id) {
+  return await prisma.post.findFirst({
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      timestamp: true,
+      userId: true,
+      user: {
+        select: {
+          username: true,
+        },
+      },
+    },
+    where: { published: true, id: id },
   });
 }
 
@@ -142,21 +171,6 @@ async function changePublishToTrue(id) {
     },
     data: {
       published: true,
-    },
-  });
-}
-
-async function getPostById(id) {
-  return await prisma.post.findUnique({
-    select: {
-      title: true,
-      content: true,
-      timestamp: true,
-      userId: true,
-      published: true,
-    },
-    where: {
-      id: id,
     },
   });
 }
