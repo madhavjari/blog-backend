@@ -1,12 +1,14 @@
-const { findPost, createComment, findUserId } = require("../db/queries");
+const {
+  findPost,
+  createComment,
+  findUserId,
+  getCommentById,
+} = require("../db/queries");
 
 async function getComment(req, res) {
   const postId = parseInt(req.params.postid);
   const commentId = parseInt(req.params.commentid);
-  console.log(postId);
-  console.log(commentId);
   const post = await findPost(postId);
-  console.log(post);
   if (!post)
     return res.status(404).json({
       message: "post not found",
@@ -15,7 +17,8 @@ async function getComment(req, res) {
     return res.status(401).json({
       message: "Cannot comment on unauthorized post",
     });
-  const comment = await getComment(commentId, postId);
+  console.log(postId);
+  const comment = await getCommentById(commentId, postId);
   console.log(comment);
   if (!comment)
     return res.status(404).json({

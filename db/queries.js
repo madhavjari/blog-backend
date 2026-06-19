@@ -213,12 +213,15 @@ async function deletePostById(id) {
   });
 }
 
-async function getComment(id, postId) {
-  await prisma.comment.findUnique({
+async function getCommentById(id, postId) {
+  console.log(postId);
+  return await prisma.comment.findUnique({
     select: {
       id: true,
       content: true,
       timestamp: true,
+      postId: true,
+      userId: true,
     },
     where: { id: id, postId: postId },
   });
@@ -244,6 +247,6 @@ module.exports = {
   getPublishedPostByUser,
   deletePostById,
   getUsernameByID,
-  getComment,
+  getCommentById,
   createComment,
 };
