@@ -15,7 +15,11 @@ authRouter.post(
   authController.postLogin,
 );
 
-authRouter.get("/api/auth/register", authController.getRegister);
+authRouter.get(
+  "/api/auth/register",
+  verifyLoggedIn,
+  authController.getRegister,
+);
 
 authRouter.post(
   "/api/auth/register",
