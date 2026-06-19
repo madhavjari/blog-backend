@@ -63,7 +63,7 @@ async function getPublishedPostByUser(userId) {
 }
 
 async function getPostById(id) {
-  return await prisma.post.findFirst({
+  return await prisma.post.findUnique({
     select: {
       id: true,
       title: true,
