@@ -110,6 +110,14 @@ async function createPost({ title, content, authorId }) {
   });
 }
 
+async function createComment({ content }) {
+  return await prisma.comment.create({
+    data: {
+      content: content,
+    },
+  });
+}
+
 async function getUsernames() {
   const { usernames } = await prisma.user.findMany({
     select: { username: true },
@@ -203,6 +211,17 @@ async function deletePostById(id) {
   });
 }
 
+async function getComment(id, postId) {
+  await prisma.comment.findUnique({
+    select: {
+      id: true,
+      content: true,
+      timestamp: true,
+    },
+    where: { id: id, postId: postId },
+  });
+}
+
 module.exports = {
   getUsernames,
   createUser,
@@ -223,4 +242,6 @@ module.exports = {
   getPublishedPostByUser,
   deletePostById,
   getUsernameByID,
+  getComment,
+  createComment,
 };
