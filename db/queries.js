@@ -77,7 +77,7 @@ async function getPostById(id) {
         },
       },
     },
-    where: { published: true, id: id },
+    where: { id: id },
   });
 }
 
