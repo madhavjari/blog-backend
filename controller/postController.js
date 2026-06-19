@@ -62,12 +62,11 @@ async function getUniquePost(req, res) {
       return res.status(400).json({ error: "Invalid Post ID format" });
     }
     const post = await getPostById(postId);
+    console.log(post);
     if (!post) return res.status(404).json({ message: "Post not found" });
     if (post.published) {
       return res.status(200).json({
-        title: post.title,
-        content: post.content,
-        timeStamp: post.timestamp,
+        post,
       });
     }
     if (req.user) {

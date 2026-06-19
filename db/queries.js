@@ -70,6 +70,7 @@ async function getPostById(id) {
       content: true,
       timestamp: true,
       userId: true,
+      published: true,
       user: {
         select: {
           username: true,
