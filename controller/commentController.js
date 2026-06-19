@@ -30,15 +30,19 @@ async function postComment(req, res) {
   const { content } = req.body;
   const postId = parseInt(req.params.postid);
   const user = req.user.username;
-  const authorId = await findUserId(user);
-  if (!authorId) {
+  const author = await findUserId(user);
+  if (!author) {
     return res
       .status(401)
       .json({ error: "User authentication failed. Missing user identifier." });
   }
+  const post = await findPost(postId);
+  if (!post.published) return res.status(404).json({ error: "Post not found" });
+  const authorId = parseInt(author.id);
   const comment = await createComment({
     content,
     postId,
+    authorId,
   });
   return res.status(200).json({
     comment,

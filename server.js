@@ -2,6 +2,7 @@ const express = require("express");
 const postRouter = require("./routes/postRouter");
 const authRouter = require("./routes/authRouter");
 const cors = require("cors");
+const commentRouter = require("./routes/commentRouter");
 
 const app = express();
 app.use(
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(postRouter);
 app.use(authRouter);
+app.use(commentRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, (error) => {

@@ -94,12 +94,13 @@ async function getUniquePost(req, res) {
 async function postPost(req, res) {
   const { title, content } = req.body;
   const user = req.user.username;
-  const authorId = await findUserId(user);
-  if (!authorId) {
+  const author = await findUserId(user);
+  if (!author) {
     return res
       .status(401)
       .json({ error: "User authentication failed. Missing user identifier." });
   }
+  const authorId = parseInt(author.id);
   const post = await createPost({
     title,
     content,

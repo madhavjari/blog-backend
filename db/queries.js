@@ -110,10 +110,12 @@ async function createPost({ title, content, authorId }) {
   });
 }
 
-async function createComment({ content }) {
+async function createComment({ content, postId, authorId }) {
   return await prisma.comment.create({
     data: {
       content: content,
+      postId: postId,
+      userId: authorId,
     },
   });
 }

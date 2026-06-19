@@ -14,3 +14,5 @@ commentRouter.post(
   verifyToken,
   commentController.postComment,
 );
+
+module.exports = commentRouter;
