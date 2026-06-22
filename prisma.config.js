@@ -9,6 +9,6 @@ module.exports = defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env.DB_URL,
+    url: process.env.DB_URL_LOCAL,
   },
 });

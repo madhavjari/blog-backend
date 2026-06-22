@@ -3,6 +3,7 @@ const postRouter = require("./routes/postRouter");
 const authRouter = require("./routes/authRouter");
 const cors = require("cors");
 const commentRouter = require("./routes/commentRouter");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 app.use(
@@ -18,6 +19,7 @@ app.use(
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cookieParser());
 app.use(postRouter);
 app.use(authRouter);
 app.use(commentRouter);

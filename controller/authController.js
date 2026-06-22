@@ -1,7 +1,19 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { createUser, findUser } = require("../db/queries");
+const crypto = require("node:crypto");
+const {
+  createUser,
+  findUser,
+  createRefreshToken,
+  findRefreshToken,
+  updateTokenRevoke,
+  updateRevokedOnLogout,
+  rotateRefreshToken,
+} = require("../db/queries");
 require("dotenv/config");
+
+const ACCESS_TOKEN_TTL = "15m";
+const REFRESH_TOKEN_TTL_DAYS = 30;
 
 async function getRegister(req, res) {
   res.json({
@@ -35,44 +47,49 @@ async function postLogin(req, res) {
   try {
     const user = await findUser(username);
     if (!user) {
-      return res.status(401).json({ message: "Invalid username" });
+      return res.status(401).json({ message: "Invalid username or password" });
     }
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
       return res.status(401).json({
-        message: "Invalid Password",
+        message: "Invalid username or Password",
       });
     }
-    jwt.sign(
-      { username: user.username },
+    const accessToken = jwt.sign(
+      {
+        sub: user.id,
+        jti: crypto.randomUUID(),
+      },
       process.env.JWT_SECRET_KEY,
-      { expiresIn: "2h" },
-      (err, token) => {
-        res.status(200).json({
-          message: "Login Successful",
-          username,
-          token,
-        });
-        if (err)
-          return res.status(500).json({
-            message: "Error generating auth token",
-          });
+      {
+        algorithm: "HS256",
+        expiresIn: ACCESS_TOKEN_TTL,
+        issuer: process.env.JWT_ISSUER,
+        audience: process.env.JWT_AUDIENCE,
       },
     );
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json({
-      message: "Internal Server Error",
+    const refreshToken = crypto.randomBytes(64).toString("hex");
+    const refreshTokenHash = crypto
+      .createHash("sha256")
+      .update(refreshToken)
+      .digest("hex");
+    await createRefreshToken({
+      userId: user.id,
+      tokenHash: refreshTokenHash,
+      expiresAt: new Date(
+        Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+      ),
+      family: crypto.randomUUID(),
     });
-  }
-}
-
-async function postLogout(req, res) {
-  try {
-    return res.status(200).json({
-      message:
-        "Logged out successfully. Please remove the token from client storage.",
-    });
+    res
+      .cookie("refresh_token", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/api/auth",
+        maxAge: REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+      })
+      .json({ accessToken });
   } catch (err) {
     console.error(err);
     return res.status(500).json({
@@ -81,4 +98,92 @@ async function postLogout(req, res) {
   }
 }
 
-module.exports = { getLogin, getRegister, postRegister, postLogin, postLogout };
+async function postRefreshToken(req, res) {
+  try {
+    const { refresh_token: presentedToken } = req.cookies;
+    if (!presentedToken) {
+      return res.status(401).json({ error: "Missing refresh token" });
+    }
+    const presentedHash = crypto
+      .createHash("sha256")
+      .update(presentedToken)
+      .digest("hex");
+    const stored = await findRefreshToken({ tokenHash: presentedHash });
+    if (!stored || stored.expiresAt < new Date() || stored.revoked) {
+      return res.status(401).json({ error: "Invalid refresh token" });
+    }
+    if (stored.used) {
+      await updateTokenRevoke({ family: stored.family }, { revoked: true });
+      return res.status(401).json({ error: "Refresh token reuse detected" });
+    }
+    const newRefreshToken = crypto.randomBytes(64).toString("hex");
+    const newRefreshTokenHash = crypto
+      .createHash("sha256")
+      .update(newRefreshToken)
+      .digest("hex");
+    await rotateRefreshToken({
+      id: stored.id,
+      userId: stored.userId,
+      newHash: newRefreshTokenHash,
+      family: stored.family,
+      expiresAt: new Date(
+        Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+      ),
+    });
+    const newAccessToken = jwt.sign(
+      {
+        sub: stored.userId,
+        jti: crypto.randomUUID(),
+      },
+      process.env.JWT_SECRET_KEY,
+      {
+        algorithm: "HS256",
+        expiresIn: ACCESS_TOKEN_TTL,
+        issuer: process.env.JWT_ISSUER,
+        audience: process.env.JWT_AUDIENCE,
+      },
+    );
+    res
+      .cookie("refresh_token", newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/api/auth",
+        maxAge: REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+      })
+      .json({ accessToken: newAccessToken });
+  } catch {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+async function postLogout(req, res) {
+  const { refresh_token: presentedToken } = req.cookies;
+  console.log(req.cookies);
+
+  if (presentedToken) {
+    const hash = crypto
+      .createHash("sha256")
+      .update(presentedToken)
+      .digest("hex");
+    await updateRevokedOnLogout({ tokenHash: hash }, { revoked: true });
+  }
+  res
+    .clearCookie("refresh_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/api/auth",
+    })
+    .status(204)
+    .end();
+}
+
+module.exports = {
+  getLogin,
+  getRegister,
+  postRegister,
+  postLogin,
+  postLogout,
+  postRefreshToken,
+};

@@ -27,6 +27,8 @@ authRouter.post(
   authController.postRegister,
 );
 
+authRouter.post("/api/auth/refresh", authController.postRefreshToken);
+
 authRouter.post("/api/auth/logout", authController.postLogout);
 
 module.exports = authRouter;

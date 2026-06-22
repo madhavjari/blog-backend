@@ -12,6 +12,17 @@ async function createUser(user) {
   });
 }
 
+async function createRefreshToken({ userId, tokenHash, expiresAt, family }) {
+  await prisma.refreshToken.create({
+    data: {
+      userId,
+      tokenHash,
+      expiresAt,
+      family,
+    },
+  });
+}
+
 async function getPostByUser(userId) {
   const posts = await prisma.post.findMany({
     select: {
@@ -214,7 +225,6 @@ async function deletePostById(id) {
 }
 
 async function getCommentById(id, postId) {
-  console.log(postId);
   return await prisma.comment.findUnique({
     select: {
       id: true,
@@ -224,6 +234,67 @@ async function getCommentById(id, postId) {
       userId: true,
     },
     where: { id: id, postId: postId },
+  });
+}
+
+async function findRefreshToken({ tokenHash }) {
+  const token = await prisma.refreshToken.findFirst({
+    select: {
+      id: true,
+      expiresAt: true,
+      userId: true,
+      tokenHash: true,
+      family: true,
+      used: true,
+    },
+    where: {
+      tokenHash: tokenHash,
+    },
+  });
+  return token;
+}
+
+async function updateTokenRevoke({ family, revoked }) {
+  await prisma.refreshToken.updateMany({
+    where: {
+      family: family,
+    },
+    data: {
+      revoked: revoked,
+    },
+  });
+}
+
+async function rotateRefreshToken({ id, userId, newHash, family, expiresAt }) {
+  await prisma.$transaction(async (tx) => {
+    await tx.refreshToken.update({
+      where: {
+        id: id,
+      },
+      data: {
+        used: true,
+      },
+    });
+
+    await tx.refreshToken.create({
+      data: {
+        userId: userId,
+        tokenHash: newHash,
+        family: family,
+        expiresAt,
+      },
+    });
+  });
+}
+
+async function updateRevokedOnLogout({ tokenHash, revoked }) {
+  await prisma.refreshToken.update({
+    where: {
+      tokenHash,
+    },
+    data: {
+      revoked,
+    },
   });
 }
 
@@ -249,4 +320,9 @@ module.exports = {
   getUsernameByID,
   getCommentById,
   createComment,
+  createRefreshToken,
+  findRefreshToken,
+  updateTokenRevoke,
+  rotateRefreshToken,
+  updateRevokedOnLogout,
 };

@@ -5,15 +5,18 @@ function verifyToken(req, res, next) {
   if (bearerHeader && bearerHeader.startsWith("Bearer ")) {
     const bearer = bearerHeader.split(" ");
     const bearerToken = bearer[1];
-    jwt.verify(bearerToken, process.env.JWT_SECRET_KEY, (err, authData) => {
-      if (err) {
-        return res.status(403).json({ message: "No token" });
-      }
-      req.user = authData;
+    try {
+      const payload = jwt.verify(bearerToken, process.env.JWT_SECRET_KEY, {
+        algorithms: ["HS256"],
+        issuer: process.env.JWT_ISSUER,
+        audience: process.env.JWT_AUDIENCE,
+      });
+
+      req.user = payload.sub;
       next();
-    });
-  } else {
-    res.sendStatus(401).json({ message: "Wrong token" });
+    } catch {
+      res.status(401).json({ message: "Wrong token" });
+    }
   }
 }
 

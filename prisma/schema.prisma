@@ -23,6 +23,7 @@ model User{
   status      String    @default("user")
   posts       Post[] 
   comments    Comment[]
+  RefreshToken  RefreshToken[]
 }
 
 model Post{
@@ -44,4 +45,17 @@ model Comment{
   postId      Int
   user        User    @relation(fields: [userId], references: [id], onDelete: Cascade) 
   userId      Int
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  tokenHash String   @unique
+  expiresAt DateTime
+  family    String   @db.Uuid
+  used      Boolean  @default(false) 
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  @@index([userId])
 }
