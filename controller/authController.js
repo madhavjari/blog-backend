@@ -1,5 +1,4 @@
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const crypto = require("node:crypto");
 const {
   createUser,
@@ -10,10 +9,14 @@ const {
   updateRevokedOnLogout,
   rotateRefreshToken,
 } = require("../db/queries");
+const {
+  getAccessToken,
+  generatedRefreshToken,
+  refreshCookieOptions,
+  hashToken,
+  refreshExpiry,
+} = require("../lib/token");
 require("dotenv/config");
-
-const ACCESS_TOKEN_TTL = "15m";
-const REFRESH_TOKEN_TTL_DAYS = 30;
 
 async function getRegister(req, res) {
   res.json({
@@ -55,40 +58,16 @@ async function postLogin(req, res) {
         message: "Invalid username or Password",
       });
     }
-    const accessToken = jwt.sign(
-      {
-        sub: user.id,
-        jti: crypto.randomUUID(),
-      },
-      process.env.JWT_SECRET_KEY,
-      {
-        algorithm: "HS256",
-        expiresIn: ACCESS_TOKEN_TTL,
-        issuer: process.env.JWT_ISSUER,
-        audience: process.env.JWT_AUDIENCE,
-      },
-    );
-    const refreshToken = crypto.randomBytes(64).toString("hex");
-    const refreshTokenHash = crypto
-      .createHash("sha256")
-      .update(refreshToken)
-      .digest("hex");
+    const accessToken = getAccessToken(user.id);
+    const { refreshToken, refreshTokenHash } = generatedRefreshToken();
     await createRefreshToken({
       userId: user.id,
       tokenHash: refreshTokenHash,
-      expiresAt: new Date(
-        Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
-      ),
+      expiresAt: refreshExpiry(),
       family: crypto.randomUUID(),
     });
     res
-      .cookie("refresh_token", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        path: "/api/auth",
-        maxAge: REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
-      })
+      .cookie("refresh_token", refreshToken, refreshCookieOptions)
       .json({ accessToken });
   } catch (err) {
     console.error(err);
@@ -100,14 +79,11 @@ async function postLogin(req, res) {
 
 async function postRefreshToken(req, res) {
   try {
-    const { refresh_token: presentedToken } = req.cookies;
+    const presentedToken = req.cookies?.refresh_token;
     if (!presentedToken) {
       return res.status(401).json({ error: "Missing refresh token" });
     }
-    const presentedHash = crypto
-      .createHash("sha256")
-      .update(presentedToken)
-      .digest("hex");
+    const presentedHash = hashToken(presentedToken);
     const stored = await findRefreshToken({ tokenHash: presentedHash });
     if (!stored || stored.expiresAt < new Date() || stored.revoked) {
       return res.status(401).json({ error: "Invalid refresh token" });
@@ -116,41 +92,18 @@ async function postRefreshToken(req, res) {
       await updateTokenRevoke({ family: stored.family }, { revoked: true });
       return res.status(401).json({ error: "Refresh token reuse detected" });
     }
-    const newRefreshToken = crypto.randomBytes(64).toString("hex");
-    const newRefreshTokenHash = crypto
-      .createHash("sha256")
-      .update(newRefreshToken)
-      .digest("hex");
+    const { newRefreshToken, newRefreshTokenHash } = generatedRefreshToken();
+
     await rotateRefreshToken({
       id: stored.id,
       userId: stored.userId,
       newHash: newRefreshTokenHash,
       family: stored.family,
-      expiresAt: new Date(
-        Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
-      ),
+      expiresAt: refreshExpiry(),
     });
-    const newAccessToken = jwt.sign(
-      {
-        sub: stored.userId,
-        jti: crypto.randomUUID(),
-      },
-      process.env.JWT_SECRET_KEY,
-      {
-        algorithm: "HS256",
-        expiresIn: ACCESS_TOKEN_TTL,
-        issuer: process.env.JWT_ISSUER,
-        audience: process.env.JWT_AUDIENCE,
-      },
-    );
+    const newAccessToken = getAccessToken(stored.userId);
     res
-      .cookie("refresh_token", newRefreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        path: "/api/auth",
-        maxAge: REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
-      })
+      .cookie("refresh_token", newRefreshToken, refreshCookieOptions)
       .json({ accessToken: newAccessToken });
   } catch {
     return res.status(500).json({ message: "Internal Server Error" });
@@ -158,25 +111,17 @@ async function postRefreshToken(req, res) {
 }
 
 async function postLogout(req, res) {
-  const { refresh_token: presentedToken } = req.cookies;
-  console.log(req.cookies);
+  try {
+    const presentedToken = req.cookies?.refresh_token;
 
-  if (presentedToken) {
-    const hash = crypto
-      .createHash("sha256")
-      .update(presentedToken)
-      .digest("hex");
-    await updateRevokedOnLogout({ tokenHash: hash }, { revoked: true });
+    if (presentedToken) {
+      const hash = hashToken(presentedToken);
+      await updateRevokedOnLogout({ tokenHash: hash }, { revoked: true });
+    }
+    res.clearCookie("refresh_token", refreshCookieOptions).status(204).end();
+  } catch {
+    return res.status(500).json({ message: "Internal Server Error" });
   }
-  res
-    .clearCookie("refresh_token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/api/auth",
-    })
-    .status(204)
-    .end();
 }
 
 module.exports = {
