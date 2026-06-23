@@ -59,7 +59,8 @@ async function postLogin(req, res) {
       });
     }
     const accessToken = getAccessToken(user.id);
-    const { refreshToken, refreshTokenHash } = generatedRefreshToken();
+    const { token: refreshToken, hash: refreshTokenHash } =
+      generatedRefreshToken();
     await createRefreshToken({
       userId: user.id,
       tokenHash: refreshTokenHash,
@@ -92,7 +93,8 @@ async function postRefreshToken(req, res) {
       await updateTokenRevoke({ family: stored.family }, { revoked: true });
       return res.status(401).json({ error: "Refresh token reuse detected" });
     }
-    const { newRefreshToken, newRefreshTokenHash } = generatedRefreshToken();
+    const { token: newRefreshToken, hash: newRefreshTokenHash } =
+      generatedRefreshToken();
 
     await rotateRefreshToken({
       id: stored.id,
