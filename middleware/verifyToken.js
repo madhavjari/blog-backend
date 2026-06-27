@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { getUsernameByID } = require("../db/queries");
+const { findUser } = require("../db/queries");
 
 async function verifyToken(req, res, next) {
   const bearerHeader = req.headers["authorization"];
@@ -12,7 +12,7 @@ async function verifyToken(req, res, next) {
         issuer: process.env.JWT_ISSUER,
         audience: process.env.JWT_AUDIENCE,
       });
-      const user = await getUsernameByID(payload.sub);
+      const user = await findUser(payload.sub);
       req.user = user;
       next();
     } catch {

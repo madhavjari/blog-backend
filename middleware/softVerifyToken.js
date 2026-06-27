@@ -1,18 +1,28 @@
 const jwt = require("jsonwebtoken");
+const { findUser } = require("../db/queries");
 
-function softVerifyToken(req, res, next) {
+async function softVerifyToken(req, res, next) {
   const bearerHeader = req.headers["authorization"];
   if (bearerHeader && bearerHeader.startsWith("Bearer ")) {
     const bearer = bearerHeader.split(" ");
     const bearerToken = bearer[1];
-    jwt.verify(bearerToken, process.env.JWT_SECRET_KEY, (err, authData) => {
-      if (err) {
+    try {
+      const payload = jwt.verify(bearerToken, process.env.JWT_SECRET_KEY, {
+        algorithms: ["HS256"],
+        issuer: process.env.JWT_ISSUER,
+        audience: process.env.JWT_AUDIENCE,
+      });
+      if (!payload) {
+        console.log("heelo");
         req.user = null;
       } else {
-        req.user = authData;
+        const user = await findUser(payload.sub);
+        req.user = user;
+        next();
       }
-      next();
-    });
+    } catch {
+      res.status(500).json({ message: "Internal Server Error" });
+    }
   } else {
     next();
   }
