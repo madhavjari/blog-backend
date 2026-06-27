@@ -13,8 +13,8 @@ async function softVerifyToken(req, res, next) {
         audience: process.env.JWT_AUDIENCE,
       });
       if (!payload) {
-        console.log("heelo");
         req.user = null;
+        next();
       } else {
         const user = await findUser(payload.sub);
         req.user = user;
