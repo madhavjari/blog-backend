@@ -58,7 +58,7 @@ async function postLogin(req, res) {
         message: "Invalid username or Password",
       });
     }
-    const accessToken = getAccessToken(user.id);
+    const accessToken = getAccessToken(user.username);
     const { token: refreshToken, hash: refreshTokenHash } =
       generatedRefreshToken();
     await createRefreshToken({
