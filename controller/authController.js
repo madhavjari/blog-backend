@@ -8,6 +8,7 @@ const {
   updateTokenRevoke,
   updateRevokedOnLogout,
   rotateRefreshToken,
+  getUsernameByID,
 } = require("../db/queries");
 const {
   getAccessToken,
@@ -103,7 +104,8 @@ async function postRefreshToken(req, res) {
       family: stored.family,
       expiresAt: refreshExpiry(),
     });
-    const newAccessToken = getAccessToken(stored.userId);
+    const username = await getUsernameByID(stored.userId);
+    const newAccessToken = getAccessToken(username.username);
     res
       .cookie("refresh_token", newRefreshToken, refreshCookieOptions)
       .json({ accessToken: newAccessToken });
