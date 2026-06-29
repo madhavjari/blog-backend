@@ -59,6 +59,7 @@ async function getAdmin(req, res) {
 async function getUniquePost(req, res) {
   try {
     const postId = parseInt(req.params.id);
+    console.log(postId);
     if (isNaN(postId)) {
       return res.status(400).json({ error: "Invalid Post ID format" });
     }
@@ -76,10 +77,13 @@ async function getUniquePost(req, res) {
       const authorId = parseInt(author.id);
       if (authorId === post.userId) {
         return res.status(200).json({
-          title: post.title,
-          content: post.content,
-          timeStamp: post.timestamp,
-          isDraft: true,
+          post: {
+            title: post.title,
+            content: post.content,
+            timeStamp: post.timestamp,
+            isDraft: true,
+            user: post.user.username,
+          },
         });
       }
     }

@@ -21,7 +21,7 @@ async function softVerifyToken(req, res, next) {
         next();
       }
     } catch {
-      res.status(500).json({ message: "Internal Server Error" });
+      next();
     }
   } else {
     next();
