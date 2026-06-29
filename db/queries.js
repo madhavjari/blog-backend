@@ -303,6 +303,7 @@ async function getCommentsOfPost(postid) {
     where: {
       postId: postid,
     },
+    include: { user: { select: { username: true } } },
   });
   return comments;
 }
