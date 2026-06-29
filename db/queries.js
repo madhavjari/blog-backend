@@ -128,6 +128,11 @@ async function createComment({ content, postId, authorId }) {
       postId: postId,
       userId: authorId,
     },
+    include: {
+      user: {
+        select: { username: true },
+      },
+    },
   });
 }
 
