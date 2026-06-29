@@ -75,15 +75,10 @@ async function getUniquePost(req, res) {
       const user = req.user.username;
       const author = await findUserId(user);
       const authorId = parseInt(author.id);
+      post["isDraft"] = true;
       if (authorId === post.userId) {
         return res.status(200).json({
-          post: {
-            title: post.title,
-            content: post.content,
-            timeStamp: post.timestamp,
-            isDraft: true,
-            user: post.user.username,
-          },
+          post,
         });
       }
     }
