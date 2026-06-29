@@ -3,6 +3,10 @@ const commentController = require("../controller/commentController");
 const verifyToken = require("../middleware/verifyToken");
 
 const commentRouter = Router();
+commentRouter.get(
+  "/api/posts/:postid/comments",
+  commentController.getAllCommentsByPost,
+);
 
 commentRouter.get(
   "/api/posts/:postid/:commentid",

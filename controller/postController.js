@@ -59,12 +59,10 @@ async function getAdmin(req, res) {
 async function getUniquePost(req, res) {
   try {
     const postId = parseInt(req.params.id);
-    console.log(postId);
     if (isNaN(postId)) {
       return res.status(400).json({ error: "Invalid Post ID format" });
     }
     const post = await getPostById(postId);
-    console.log(post);
     if (!post) return res.status(404).json({ message: "Post not found" });
     if (post.published) {
       return res.status(200).json({

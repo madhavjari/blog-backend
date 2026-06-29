@@ -3,35 +3,65 @@ const {
   createComment,
   findUserId,
   getCommentById,
+  getCommentsOfPost,
 } = require("../db/queries");
 
 async function getComment(req, res) {
-  const postId = parseInt(req.params.postid);
-  const commentId = parseInt(req.params.commentid);
-  const post = await findPost(postId);
-  if (!post)
-    return res.status(404).json({
-      message: "post not found",
+  try {
+    const postId = parseInt(req.params.postid);
+    if (isNaN(postId)) {
+      return res.status(400).json({ error: "Invalid Post ID format" });
+    }
+    const commentId = parseInt(req.params.commentid);
+    if (isNaN(commentId)) {
+      return res.status(400).json({ error: "Invalid comment ID format" });
+    }
+    const post = await findPost(postId);
+    if (!post)
+      return res.status(404).json({
+        message: "post not found",
+      });
+    if (!post.published)
+      return res.status(401).json({
+        message: "Cannot see comment on unauthorized post",
+      });
+    const comment = await getCommentById(commentId, postId);
+    if (!comment)
+      return res.status(404).json({
+        message: "no comment by this id",
+      });
+    return res.status(200).json({
+      comment,
     });
-  if (!post.published)
-    return res.status(401).json({
-      message: "Cannot comment on unauthorized post",
-    });
-  console.log(postId);
-  const comment = await getCommentById(commentId, postId);
-  console.log(comment);
-  if (!comment)
-    return res.status(404).json({
-      message: "no comment by this id",
-    });
-  return res.status(200).json({
-    comment,
-  });
+  } catch {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+async function getAllCommentsByPost(req, res) {
+  try {
+    const postId = parseInt(req.params.postid);
+    const post = await findPost(postId);
+    if (!post) return res.status(404).json({ message: "post not found" });
+    if (!post.published)
+      return res.status(401).json({
+        message: "Cannot see comment on unauthorized post",
+      });
+    const comments = await getCommentsOfPost(postId);
+    if (!comments)
+      return res.status(200).json({ message: "No comments on this post" });
+    return res.status(200).json({ comments });
+  } catch {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 }
 
 async function postComment(req, res) {
   const { content } = req.body;
   const postId = parseInt(req.params.postid);
+  if (isNaN(postId)) {
+    return res.status(400).json({ error: "Invalid Post ID format" });
+  }
   const user = req.user.username;
   const author = await findUserId(user);
   if (!author) {
@@ -41,7 +71,7 @@ async function postComment(req, res) {
   }
   const post = await findPost(postId);
   if (!post.published) return res.status(404).json({ error: "Post not found" });
-  const authorId = parseInt(author.id);
+  const authorId = author.id;
   const comment = await createComment({
     content,
     postId,
@@ -53,4 +83,4 @@ async function postComment(req, res) {
   });
 }
 
-module.exports = { getComment, postComment };
+module.exports = { getComment, postComment, getAllCommentsByPost };

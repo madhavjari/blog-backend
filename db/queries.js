@@ -298,6 +298,15 @@ async function updateRevokedOnLogout({ tokenHash, revoked }) {
   });
 }
 
+async function getCommentsOfPost(postid) {
+  const comments = prisma.comment.findMany({
+    where: {
+      postId: postid,
+    },
+  });
+  return comments;
+}
+
 module.exports = {
   getUsernames,
   createUser,
@@ -325,4 +334,5 @@ module.exports = {
   updateTokenRevoke,
   rotateRefreshToken,
   updateRevokedOnLogout,
+  getCommentsOfPost,
 };
