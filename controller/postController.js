@@ -1,9 +1,7 @@
 const {
   createPost,
   findUserId,
-  findPost,
-  changePublishToTrue,
-  changePublishToFalse,
+  changePostStatus,
   getPublishedPost,
   getPostByUser,
   getAllPost,
@@ -110,40 +108,17 @@ async function postPost(req, res) {
   });
 }
 
-async function publishPost(req, res) {
-  const id = parseInt(req.params.postid);
-  if (isNaN(id)) {
-    return res.status(400).json({ error: "Invalid post ID format" });
-  }
-  const post = await findPost(id);
-  if (post) {
-    if (post.published === true)
-      return res.status(400).json({ error: "Post is already published" });
-    await changePublishToTrue(id);
-    res.json({
-      message: "Post Published",
-    });
-  } else {
-    res.status(401).json({
-      error: "post not found",
-    });
-  }
-}
-
-async function unpublishPost(req, res) {
-  const id = parseInt(req.params.postid);
-  if (isNaN(id)) {
-    return res.status(400).json({ error: "Invalid post ID format" });
-  }
-  if (await findPost(id)) {
-    await changePublishToFalse(id);
-    res.json({
-      message: "Post unpublished",
-    });
-  } else {
-    res.status(401).json({
-      error: "post not found",
-    });
+async function updatePost(req, res) {
+  try {
+    const id = parseInt(req.params.id);
+    const post = await getPostById(id);
+    if (post.published) await changePostStatus(id, false);
+    else await changePostStatus(id, true);
+    return res
+      .status(200)
+      .json({ message: "Post status changed successfully" });
+  } catch {
+    return res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -165,8 +140,7 @@ async function deletePost(req, res) {
 module.exports = {
   getPost,
   postPost,
-  publishPost,
-  unpublishPost,
+  updatePost,
   getUserPost,
   getAdmin,
   getUniquePost,

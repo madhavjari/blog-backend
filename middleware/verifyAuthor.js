@@ -4,11 +4,12 @@ async function verifyAuthor(req, res, next) {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ message: "invalid post id" });
-    const user = req.user.username;
-    const userId = await findUserId(user);
+    const username = req.user.username;
+    const user = await findUserId(username);
+    if (!user) return res.status(404).json({ message: "No user found" });
     const post = await getUserByPostId(id);
     if (!post) return res.status(404).json({ message: "Post not found" });
-    if (userId === post.userId) return next();
+    if (user.id === post.userId) return next();
     return res
       .status(401)
       .json({ message: "You do not have authorization to change this post" });

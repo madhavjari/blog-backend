@@ -33,16 +33,10 @@ postRouter.post(
   postController.postPost,
 );
 postRouter.put(
-  "/api/posts/:id/publish",
+  "/api/posts/:id/update",
   verifyToken,
   verifyAuthor,
-  postController.publishPost,
-);
-postRouter.put(
-  "/api/posts/:id/unpublish",
-  verifyToken,
-  verifyAuthor,
-  postController.unpublishPost,
+  postController.updatePost,
 );
 
 postRouter.delete(

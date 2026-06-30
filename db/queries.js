@@ -183,32 +183,13 @@ async function checkStatus(username) {
   return user.status;
 }
 
-async function findPost(id) {
-  const isAvail = await prisma.post.findUnique({
-    select: { id: true, published: true },
-    where: { id: id },
-  });
-  return isAvail;
-}
-
-async function changePublishToTrue(id) {
+async function changePostStatus(id, status) {
   await prisma.post.update({
     where: {
       id: id,
     },
     data: {
-      published: true,
-    },
-  });
-}
-
-async function changePublishToFalse(id) {
-  await prisma.post.update({
-    where: {
-      id: id,
-    },
-    data: {
-      published: false,
+      published: status,
     },
   });
 }
@@ -320,9 +301,6 @@ module.exports = {
   findEmail,
   createPost,
   findUserId,
-  findPost,
-  changePublishToTrue,
-  changePublishToFalse,
   getPostByUser,
   getPublishedPost,
   getAllPost,
@@ -341,4 +319,5 @@ module.exports = {
   rotateRefreshToken,
   updateRevokedOnLogout,
   getCommentsOfPost,
+  changePostStatus,
 };
