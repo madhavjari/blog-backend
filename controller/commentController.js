@@ -1,9 +1,9 @@
 const {
-  findPost,
   createComment,
   findUserId,
   getCommentById,
   getCommentsOfPost,
+  getPostById,
 } = require("../db/queries");
 
 async function getComment(req, res) {
@@ -16,7 +16,7 @@ async function getComment(req, res) {
     if (isNaN(commentId)) {
       return res.status(400).json({ error: "Invalid comment ID format" });
     }
-    const post = await findPost(postId);
+    const post = await getPostById(postId);
     if (!post)
       return res.status(404).json({
         message: "post not found",
@@ -41,7 +41,7 @@ async function getComment(req, res) {
 async function getAllCommentsByPost(req, res) {
   try {
     const postId = parseInt(req.params.postid);
-    const post = await findPost(postId);
+    const post = await getPostById(postId);
     if (!post) return res.status(404).json({ message: "post not found" });
     if (!post.published)
       return res.status(401).json({
@@ -69,7 +69,7 @@ async function postComment(req, res) {
       .status(401)
       .json({ error: "User authentication failed. Missing user identifier." });
   }
-  const post = await findPost(postId);
+  const post = await getPostById(postId);
   if (!post.published) return res.status(404).json({ error: "Post not found" });
   const authorId = author.id;
   const comment = await createComment({
