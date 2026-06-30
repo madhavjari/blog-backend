@@ -114,9 +114,8 @@ async function updatePost(req, res) {
     const post = await getPostById(id);
     if (post.published) await changePostStatus(id, false);
     else await changePostStatus(id, true);
-    return res
-      .status(200)
-      .json({ message: "Post status changed successfully" });
+    const updatedPost = await getPostById(id);
+    return res.status(200).json({ post: updatedPost });
   } catch {
     return res.status(500).json({ message: "Internal server error" });
   }

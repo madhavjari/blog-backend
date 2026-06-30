@@ -25,16 +25,12 @@ async function createRefreshToken({ userId, tokenHash, expiresAt, family }) {
 
 async function getPostByUser(userId) {
   const posts = await prisma.post.findMany({
-    select: {
-      id: true,
-      title: true,
-      content: true,
-      timestamp: true,
-      published: true,
-      userId: true,
-      user: { select: { username: true } },
-    },
     where: { userId: userId },
+    include: {
+      user: {
+        select: { username: true },
+      },
+    },
   });
   return posts;
 }
@@ -77,20 +73,12 @@ async function getPublishedPostByUser(userId) {
 
 async function getPostById(id) {
   return await prisma.post.findUnique({
-    select: {
-      id: true,
-      title: true,
-      content: true,
-      timestamp: true,
-      userId: true,
-      published: true,
+    where: { id: id },
+    include: {
       user: {
-        select: {
-          username: true,
-        },
+        select: { username: true },
       },
     },
-    where: { id: id },
   });
 }
 
