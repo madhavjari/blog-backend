@@ -31,6 +31,8 @@ async function getPostByUser(userId) {
       content: true,
       timestamp: true,
       published: true,
+      userId: true,
+      user: { select: { username: true } },
     },
     where: { userId: userId },
   });
