@@ -2,12 +2,12 @@ const { Router } = require("express");
 const commentController = require("../controller/commentController");
 const verifyToken = require("../middleware/verifyToken");
 const verifyAuthor = require("../middleware/verifyAuthor");
+const softVerifyToken = require("../middleware/softVerifyToken");
 
 const commentRouter = Router();
 commentRouter.get(
   "/api/posts/:postid/comments",
-  verifyToken,
-  verifyAuthor,
+  softVerifyToken,
   commentController.getAllCommentsByPost,
 );
 
