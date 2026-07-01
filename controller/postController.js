@@ -56,7 +56,7 @@ async function getAdmin(req, res) {
 
 async function getUniquePost(req, res) {
   try {
-    const postId = parseInt(req.params.id);
+    const postId = parseInt(req.params.postid);
     if (isNaN(postId)) {
       return res.status(400).json({ error: "Invalid Post ID format" });
     }
@@ -110,7 +110,7 @@ async function postPost(req, res) {
 
 async function updatePost(req, res) {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.postid);
     const post = await getPostById(id);
     if (post.published) await changePostStatus(id, false);
     else await changePostStatus(id, true);
@@ -123,7 +123,7 @@ async function updatePost(req, res) {
 
 async function deletePost(req, res) {
   try {
-    const postId = parseInt(req.params.id);
+    const postId = parseInt(req.params.postid);
     if (isNaN(postId)) {
       return res.status(400).json({ error: "Invalid Post ID format" });
     }
