@@ -21,6 +21,7 @@ commentRouter.get(
 commentRouter.post(
   "/api/posts/:postid/",
   verifyToken,
+  validate(commentSchema),
   commentController.postComment,
 );
 
@@ -28,7 +29,6 @@ commentRouter.delete(
   "/api/posts/:postid/:commentid",
   verifyToken,
   verifyAuthor,
-  validate(commentSchema),
   commentController.deleteComment,
 );
 
