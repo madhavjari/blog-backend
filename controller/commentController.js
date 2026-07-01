@@ -5,6 +5,8 @@ const {
   getCommentsOfPost,
   getPostById,
   deleteCommentById,
+  getUserByPostId,
+  getUsernameByID,
 } = require("../db/queries");
 
 async function getComment(req, res) {
@@ -42,12 +44,24 @@ async function getComment(req, res) {
 async function getAllCommentsByPost(req, res) {
   try {
     const postId = parseInt(req.params.postid);
+    if (isNaN(postId)) {
+      return res.status(400).json({ error: "Invalid Post ID format" });
+    }
     const post = await getPostById(postId);
     if (!post) return res.status(404).json({ message: "post not found" });
     const comments = await getCommentsOfPost(postId);
     if (!comments)
       return res.status(200).json({ message: "No comments on this post" });
-    return res.status(200).json({ comments });
+    const postAuthor = getUserByPostId(postId);
+    if (!postAuthor) res.status(404).json({ message: "author not found" });
+    const author = getUsernameByID(postAuthor.id);
+    if (!author) res.status(404).json({ message: "author not found" });
+    const user = req.user.username;
+    if (!user || user !== author.username) {
+      if (post.published) return res.status(200).json({ comments });
+      else return res.status(401).json({ message: "Unathorized" });
+    }
+    if (user === author.username) return res.status(200).json({ comments });
   } catch {
     return res.status(500).json({ message: "Internal Server Error" });
   }
