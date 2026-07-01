@@ -4,6 +4,7 @@ const {
   getCommentById,
   getCommentsOfPost,
   getPostById,
+  deleteCommentById,
 } = require("../db/queries");
 
 async function getComment(req, res) {
@@ -62,7 +63,7 @@ async function deleteComment(req, res) {
     if (isNaN(commentId)) {
       return res.status(400).json({ error: "Invalid Comment ID format" });
     }
-    await deleteComment(commentId);
+    await deleteCommentById(commentId);
     return res.status(200).json({
       message: "comment deleted successfully",
     });

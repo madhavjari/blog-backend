@@ -284,7 +284,7 @@ async function getCommentsOfPost(postid) {
   return comments;
 }
 
-async function deleteComment(id) {
+async function deleteCommentById(id) {
   await prisma.comment.delete({
     where: {
       id: id,
@@ -318,5 +318,5 @@ module.exports = {
   updateRevokedOnLogout,
   getCommentsOfPost,
   changePostStatus,
-  deleteComment,
+  deleteCommentById,
 };
