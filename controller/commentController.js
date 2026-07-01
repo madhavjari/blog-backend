@@ -94,16 +94,15 @@ async function postComment(req, res) {
     const user = req.user.username;
     const author = await findUserId(user);
     if (!author) {
-      return res
-        .status(401)
-        .json({
-          error: "User authentication failed. Missing user identifier.",
-        });
+      return res.status(401).json({
+        error: "User authentication failed. Missing user identifier.",
+      });
     }
     const post = await getPostById(postId);
     if (!post.published)
       return res.status(404).json({ error: "Post not found" });
     const authorId = author.id;
+    if (content === null || content === "") return;
     const comment = await createComment({
       content,
       postId,
