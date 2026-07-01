@@ -102,7 +102,6 @@ async function postComment(req, res) {
     if (!post.published)
       return res.status(404).json({ error: "Post not found" });
     const authorId = author.id;
-    if (content === null || content === "") return;
     const comment = await createComment({
       content,
       postId,

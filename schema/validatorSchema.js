@@ -64,4 +64,9 @@ const postSchema = z.object({
   }),
 });
 
-module.exports = { registerSchema, loginSchema, postSchema };
+const commentSchema = z.object({
+  body: z.object({
+    content: z.string().min(1, "Content is required").trim(),
+  }),
+});
+module.exports = { registerSchema, loginSchema, postSchema, commentSchema };

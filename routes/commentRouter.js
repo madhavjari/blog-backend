@@ -1,5 +1,7 @@
 const { Router } = require("express");
 const commentController = require("../controller/commentController");
+const { commentSchema } = require("../schema/validatorSchema");
+const { validate } = require("../middleware/zodValidator");
 const verifyToken = require("../middleware/verifyToken");
 const verifyAuthor = require("../middleware/verifyAuthor");
 const softVerifyToken = require("../middleware/softVerifyToken");
@@ -26,6 +28,7 @@ commentRouter.delete(
   "/api/posts/:postid/:commentid",
   verifyToken,
   verifyAuthor,
+  validate(commentSchema),
   commentController.deleteComment,
 );
 
