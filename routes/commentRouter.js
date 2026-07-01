@@ -6,6 +6,7 @@ const verifyAuthor = require("../middleware/verifyAuthor");
 const commentRouter = Router();
 commentRouter.get(
   "/api/posts/:postid/comments",
+  verifyToken,
   verifyAuthor,
   commentController.getAllCommentsByPost,
 );
