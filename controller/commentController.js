@@ -52,12 +52,12 @@ async function getAllCommentsByPost(req, res) {
     const comments = await getCommentsOfPost(postId);
     if (!comments)
       return res.status(200).json({ message: "No comments on this post" });
-    const postAuthor = getUserByPostId(postId);
+    const postAuthor = await getUserByPostId(postId);
     if (!postAuthor) res.status(404).json({ message: "author not found" });
-    const author = getUsernameByID(postAuthor.id);
+    const author = await getUsernameByID(postAuthor.userId);
     if (!author) res.status(404).json({ message: "author not found" });
-    const user = req.user.username;
-    if (!user || user !== author.username) {
+    const user = req.user;
+    if (!user || user.username !== author.username) {
       if (post.published) return res.status(200).json({ comments });
       else return res.status(401).json({ message: "Unathorized" });
     }
