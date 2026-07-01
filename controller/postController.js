@@ -123,8 +123,11 @@ async function updatePost(req, res) {
 
 async function deletePost(req, res) {
   try {
-    const id = parseInt(req.params.id);
-    await deletePostById(id);
+    const postId = parseInt(req.params.id);
+    if (isNaN(postId)) {
+      return res.status(400).json({ error: "Invalid Post ID format" });
+    }
+    await deletePostById(postId);
     return res.status(200).json({
       message: "post deleted successfully",
     });

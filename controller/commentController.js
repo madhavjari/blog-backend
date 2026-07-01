@@ -56,6 +56,21 @@ async function getAllCommentsByPost(req, res) {
   }
 }
 
+async function deleteComment(req, res) {
+  try {
+    const commentId = parseInt(req.params.commentid);
+    if (isNaN(commentId)) {
+      return res.status(400).json({ error: "Invalid Comment ID format" });
+    }
+    await deleteComment(commentId);
+    return res.status(200).json({
+      message: "comment deleted successfully",
+    });
+  } catch {
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 async function postComment(req, res) {
   const { content } = req.body;
   const postId = parseInt(req.params.postid);
@@ -83,4 +98,9 @@ async function postComment(req, res) {
   });
 }
 
-module.exports = { getComment, postComment, getAllCommentsByPost };
+module.exports = {
+  getComment,
+  postComment,
+  getAllCommentsByPost,
+  deleteComment,
+};
