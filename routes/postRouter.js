@@ -24,7 +24,11 @@ postRouter.get(
   postController.getAdmin,
 );
 
-postRouter.get("/api/posts/:id", softVerifyToken, postController.getUniquePost);
+postRouter.get(
+  "/api/posts/:postid",
+  softVerifyToken,
+  postController.getUniquePost,
+);
 
 postRouter.post(
   "/api/posts",
@@ -33,14 +37,14 @@ postRouter.post(
   postController.postPost,
 );
 postRouter.put(
-  "/api/posts/:id/update",
+  "/api/posts/:postid/update",
   verifyToken,
   verifyAuthor,
   postController.updatePost,
 );
 
 postRouter.delete(
-  "/api/posts/:id",
+  "/api/posts/:postid",
   verifyToken,
   verifyAuthor,
   postController.deletePost,

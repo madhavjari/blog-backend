@@ -2,7 +2,7 @@ const { findUserId, getUserByPostId } = require("../db/queries");
 
 async function verifyAuthor(req, res, next) {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.postid);
     if (isNaN(id)) return res.status(400).json({ message: "invalid post id" });
     const username = req.user.username;
     const user = await findUserId(username);
