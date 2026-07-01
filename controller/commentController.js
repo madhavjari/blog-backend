@@ -44,10 +44,6 @@ async function getAllCommentsByPost(req, res) {
     const postId = parseInt(req.params.postid);
     const post = await getPostById(postId);
     if (!post) return res.status(404).json({ message: "post not found" });
-    if (!post.published)
-      return res.status(401).json({
-        message: "Cannot see comment on unauthorized post",
-      });
     const comments = await getCommentsOfPost(postId);
     if (!comments)
       return res.status(200).json({ message: "No comments on this post" });
