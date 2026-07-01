@@ -53,15 +53,17 @@ async function getAllCommentsByPost(req, res) {
     if (!comments)
       return res.status(200).json({ message: "No comments on this post" });
     const postAuthor = await getUserByPostId(postId);
-    if (!postAuthor) res.status(404).json({ message: "author not found" });
+    if (!postAuthor)
+      return res.status(404).json({ message: "author not found" });
     const author = await getUsernameByID(postAuthor.userId);
-    if (!author) res.status(404).json({ message: "author not found" });
+    if (!author) return res.status(404).json({ message: "author not found" });
     const user = req.user;
     if (!user || user.username !== author.username) {
       if (post.published) return res.status(200).json({ comments });
       else return res.status(401).json({ message: "Unathorized" });
     }
-    if (user === author.username) return res.status(200).json({ comments });
+    if (user.username === author.username)
+      return res.status(200).json({ comments });
   } catch {
     return res.status(500).json({ message: "Internal Server Error" });
   }
@@ -83,30 +85,37 @@ async function deleteComment(req, res) {
 }
 
 async function postComment(req, res) {
-  const { content } = req.body;
-  const postId = parseInt(req.params.postid);
-  if (isNaN(postId)) {
-    return res.status(400).json({ error: "Invalid Post ID format" });
+  try {
+    const { content } = req.body;
+    const postId = parseInt(req.params.postid);
+    if (isNaN(postId)) {
+      return res.status(400).json({ error: "Invalid Post ID format" });
+    }
+    const user = req.user.username;
+    const author = await findUserId(user);
+    if (!author) {
+      return res
+        .status(401)
+        .json({
+          error: "User authentication failed. Missing user identifier.",
+        });
+    }
+    const post = await getPostById(postId);
+    if (!post.published)
+      return res.status(404).json({ error: "Post not found" });
+    const authorId = author.id;
+    const comment = await createComment({
+      content,
+      postId,
+      authorId,
+    });
+    return res.status(200).json({
+      comment,
+      message: "Comment created",
+    });
+  } catch {
+    return res.status(500).json({ message: "Internal Server Error" });
   }
-  const user = req.user.username;
-  const author = await findUserId(user);
-  if (!author) {
-    return res
-      .status(401)
-      .json({ error: "User authentication failed. Missing user identifier." });
-  }
-  const post = await getPostById(postId);
-  if (!post.published) return res.status(404).json({ error: "Post not found" });
-  const authorId = author.id;
-  const comment = await createComment({
-    content,
-    postId,
-    authorId,
-  });
-  return res.status(200).json({
-    comment,
-    message: "Comment created",
-  });
 }
 
 module.exports = {
